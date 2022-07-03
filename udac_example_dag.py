@@ -14,10 +14,10 @@ AWS_SECRET = AwsHook('aws_credentials').get_credentials().secret_key
 
 default_args = {
     'owner': 'udacity',
-    'start_date': datetime(2019, 1, 12),
+    'start_date': datetime(2018, 11, 1),
     'depends_on_past': False,
-    'retries': 3,
-    'retry_delay': timedelta(minutes=5),
+    'retries': 1,
+    'retry_delay': timedelta(minutes=2),
     'catchup': False,
     'email_on_retry': False
 }
@@ -46,11 +46,22 @@ stage_events_to_redshift = StageToRedshiftOperator(
 
 stage_songs_to_redshift = StageToRedshiftOperator(
     task_id='Stage_songs',
-    dag=dag
+redshift_conn_id='redshift',
+aws_credentials_id='aws_credentials',
+table='staging_songs',
+s3_bucket='udacity-dend',
+s3_key='song_data/A/A/B/',
+#extra_parameter="FORMAT AS JSON 'auto'",
+dag=dag
+
 )
+
 
 load_songplays_table = LoadFactOperator(
     task_id='Load_songplays_fact_table',
+    redshift_conn_id='redshift',
+    table_name='songplays',
+    sql_statement=SqlQueries.songplay_table_insert,
     dag=dag
 )
 
